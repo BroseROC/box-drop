@@ -15,7 +15,7 @@
 
 using namespace std;
 
-int main();
+int main(int,char**);
 char buffer[EVENT_BUF_LEN];
 pthread_t network, fileWatch, fileIO;
 enum WatchTask {eWatch, eUnwatch};
@@ -28,21 +28,29 @@ struct watch{
 };
 
 
-int main(){
+int main(int argc, char ** argv){
     //CREATE
     //networkThread
     //fileWatchThread
     //fileIOThread
     int main_notify;
     watch root;
+
+    char * dir;
+    if (argc != 2){
+        cout << "No arguments!" << endl;
+        return 1;
+    }
+    dir = argv[1];
+    cout << "Using directory: " << dir << endl;
     if((main_notify = inotify_init()) != -1){
         cout << "inotify started successfully" << endl;
     }else{
         cout << "inotify could not be started, errno: " << errno << endl;
         return 1;
     }
-    root.wd = inotify_add_watch(main_notify, "/tmp/watch/", IN_ATTRIB | IN_CREATE | IN_DELETE);
-    root.path = "/tmp/watch/";
+    root.wd = inotify_add_watch(main_notify, dir, IN_ATTRIB | IN_CREATE | IN_DELETE);
+    root.path = dir;
     root.file = false;
     
     if (root.wd > 0){
