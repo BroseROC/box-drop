@@ -1,12 +1,13 @@
-#Symbols
-#Required Install of glibc-static and libstdc++-static 
 
 CXX := g++
-CXXFLAGS := -std=c++0x -g -lpthread -Wall
+CXXFLAGS := -std=c++0x -g -lpthread -lrt -Wall
+FILES := manager.cpp file_watch.cpp
 
-DetectorConnectionMgr:
+all: clean boxdrop
+
+boxdrop:
 	#mkdir ../bin 
-	$(CXX) -o boxdrop manager.cpp $(CXXFLAGS)
+	$(CXX) -o boxdrop $(CXXFLAGS) $(FILES)
 
 clean:
 	rm -f boxdrop

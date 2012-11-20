@@ -1,41 +1,11 @@
-#include <iostream>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <pthread.h>
-#include <sys/inotify.h>
-#include <errno.h>
-#include <unistd.h>
-#include "TSMsgQueue.cpp"
-
-
-#define EVENT_SIZE  (sizeof(struct inotify_event))
-#define EVENT_BUF_LEN     (32 * ( EVENT_SIZE + 16))
-
-
-using namespace std;
-
-int main(int,char**);
-char buffer[EVENT_BUF_LEN];
-pthread_t network, fileWatch, fileIO;
-enum WatchTask {eWatch, eUnwatch};
-enum WatchResponse {eOkay, eError};
-
-struct watch{
-    int wd;
-    string path;
-    bool file;
-};
-
+#include "manager.h"
 
 int main(int argc, char ** argv){
-    //CREATE
+    //TODO: CREATE
     //networkThread
     //fileWatchThread
     //fileIOThread
-    int main_notify;
-    watch root;
-
+    bool status;
     char * dir;
     if (argc != 2){
         cout << "No arguments!" << endl;
@@ -43,17 +13,12 @@ int main(int argc, char ** argv){
     }
     dir = argv[1];
     cout << "Using directory: " << dir << endl;
-    if((main_notify = inotify_init()) != -1){
-        cout << "inotify started successfully" << endl;
-    }else{
-        cout << "inotify could not be started, errno: " << errno << endl;
-        return 1;
-    }
-    root.wd = inotify_add_watch(main_notify, dir, IN_ATTRIB | IN_CREATE | IN_DELETE);
-    root.path = dir;
-    root.file = false;
-    
-    if (root.wd > 0){
+        
+    //Watch * root;
+    //root = (Watch *) malloc(sizeof(Watch));
+    /*Watch root;
+    status = addWatch(main_notify, (string)dir, &root);
+    if (status){
         cout << "Watch created" << endl;
     }else{
         cout << "Watch cannot be created, errno: " << errno << endl;
@@ -105,17 +70,34 @@ int main(int argc, char ** argv){
                 cout << "File modified, filename: " << ev->name << endl;
                 break;
         }
-    }
+    }*/
+    cout << initQueues() << endl;
+    WatchCommand temp;
+    temp.dir = "/tmp/watch";
+    temp.task = eWatch;
+    mq_send(watchCommandQueue, (const char *)&temp, sizeof(temp), 0);
+    void* a;
+    a = fileWatchThread(NULL);
     return 0;
 }
 
+bool initSockets(){
+    //string 
+    return false;
+}
 
-void *networkThread(void *arg){
+string generateFilename(int length){
+    string filename = "";
+    for (int i = 0; i < length; i++){
+        filename.append(ALPHA[rand() % sizeof(ALPHA)]);
+    }
+    return filename;
+}
+
+void* fileIOThread(void *arg){
     //TODO
 }
-void *fileWatchThread(void *arg){
-    //TODO
-}
-void *fileIOThread(void *arg){
+
+void* networkThread(void *arg){
     //TODO
 }
