@@ -1,57 +1,62 @@
-#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <stdarg.h>
+
+#include <iostream>
+#include <string>
+#include <cstring>
+
 #include <pthread.h>
-#include <sys/inotify.h>
+#include <mqueue.h>
+
 #include <errno.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/stat.h>
-#include <mqueue.h>
 
+#include <sys/socket.h>
 
+#include "consts.h"
 #include "file_watch.h"
-
-#define EVENT_SIZE  (sizeof(struct inotify_event))
-#define EVENT_BUF_LEN     (32 * ( EVENT_SIZE + 16))
-
-#define SOCKET_FILENAME_PREFIX "/tmp/"
-#define SOCKET_FILENAME_SIZE 10
-#define SOCKET_FILENAME_TOTAL_SIZE sizeof(SOCKET_FILENAME_PREFIX) + SOCKET_FILENAME_SIZE
 
 using namespace std;
 
-char * generateFilename(int length);
-const char ALPHA[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+
+const char ALPHA[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const int ALPHASIZE = sizeof(ALPHA) - 1;
 char buffer[EVENT_BUF_LEN];
 pthread_t network, fileWatch, fileIO, DBManager;
-char[SOCKET_FILENAME_TOTAL_SIZE] networkSocket;
-char[SOCKET_FILENAME_TOTAL_SIZE] fileWatchSocket;
-char[SOCKET_FILENAME_TOTAL_SIZE] fileIOSocket;
-char[SOCKET_FILENAME_TOTAL_SIZE] DBManagerSocket;
-enum WatchTask {eWatch, eUnwatch};
-enum WatchResponse {eOkay, eError};
-enum TaskType {eWatchTask, eIOTask, eNetworkTask};
+
+char* toNetworkFile;
+char* toFileWatchFile;
+char* toFileIOFile;
+char* toDBManagerFile;
+
+char* fromNetworkFile;
+char* fromFileWatchFile;
+char* fromFileIOFile;
+char* fromDBManagerFile;
+
+mqd_t toFileWatch;
+mqd_t fromFileWatch;
+// networkSocket;
+//sockaddr_un fileIOSocket;
+//sockaddr_un DBManagerSocket;
+
 //enum ResponseType {eWatchReponse, eIOResponse, eNetworkResponse};
 //enum CommandType {eWatchCommand, eIOCommand, eNetworkCommand};
 
-struct Watch{
-    int wd;
-    string path;
-    bool file;
-};
+void printErrno(int err);
+bool sendTo(mqd_t queue, void* msg, size_t size);
 
-struct WatchCommand{
-    WatchTask task;
-    string dir;
-};
+int main(int, char**);
+void initQueues();
+void initThreads();
+char* generateFilename(int length);
+bool fileExists(char* filename);
+void printfLine(const char* fmt, ...);
 
-mqd_t watchCommandQueue;
-mqd_t watchResponseQueue;
-
-int main(int,char**);
-bool initQueues();
+//Thread functions
 void* fileIOThread(void *);
 void* networkThread(void *);
